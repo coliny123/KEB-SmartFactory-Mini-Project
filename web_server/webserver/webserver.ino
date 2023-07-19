@@ -23,6 +23,10 @@ void handleRootEvent() {
 
   String clientIP = server.client().remoteIP().toString();  // client's ip addr
 
+  int octet1, octet2, octet3, octet4;
+  sscanf(clientIP.c_str(), "%d.%d.%d.%d", &octet1, &octet2, &octet3, &octet4);
+  String maskedIP = String(octet1) + ".XXX.XXX." + String(octet4); // 2nd, 3rd masking
+
   Vo = analogRead(tempSensor); // read from temperature sensing value
   R2 = R1 * (4095.0 / (float)Vo - 1.0);
   logR2 = log(R2);
@@ -31,7 +35,7 @@ void handleRootEvent() {
   Tf = (Tc * 9.0/5.0) + 32.0;  // fahrenheit
 
   String message = "Welcome SmartFactory WebServer!\n\n";
-  message += "Your IP address: " + clientIP;
+  message += "Your IP address: " + maskedIP;
   message = message + "\nTemperature: " + String(Tc) + "C " + "(" + String(Tf) + "F)";
   server.send(200, "text/plain", message);  // status code 200(OK), format, message
   
