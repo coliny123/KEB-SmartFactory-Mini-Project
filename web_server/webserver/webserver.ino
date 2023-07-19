@@ -38,6 +38,7 @@ void handleRootEvent() {
   message += "Your IP address: " + maskedIP;
   message = message + "\nTemperature: " + String(Tc) + "C " + "(" + String(Tf) + "F)";
   server.send(200, "text/plain", message);  // status code 200(OK), format, message
+  Serial.println(message); // monitoring
   
   Serial.println(clientIP);
   Serial.print(Tc);
