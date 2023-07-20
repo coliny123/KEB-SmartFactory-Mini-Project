@@ -1,3 +1,5 @@
+package Observer;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;  // Java 11
@@ -17,14 +19,25 @@ public class SmartFactoryClient {
 
             if (response.statusCode() == 200) {
                 String[] lines = response.body().split("\n");
-                if (lines.length >= 4) {
-                    String ipLine = lines[2];
-                    //                    String temperatureLine = lines[3];
-                    String ip_address = ipLine.split(": ")[1];
-                    //                    String temperature = temperatureLine.split(": ")[1];
 
-                    System.out.println("IP address : " + ip_address);
-                    System.out.println(lines[3]);
+                SensorData sensorData = new SensorData();
+
+                float brightness = 0;
+                float temperature = 0;
+                int counting = 0;
+
+                if (lines.length >= 4) {
+                    String temperatureLine = lines[2];
+                    temperature = Float.parseFloat(temperatureLine.split(": ")[1]);
+                    String brightnessLine = lines[3];
+                    brightness = Float.parseFloat(brightnessLine.split(": ")[1]);
+                    String countingLine = lines[4];
+                    counting = Integer.parseInt(countingLine.split(": ")[1]);
+
+                    CurrentConditionsDisplay conditionsDisplay = new CurrentConditionsDisplay(sensorData);
+
+                    sensorData.setMeasurements(temperature, brightness, counting);
+
                 } else {
                     System.out.println("Response format error!");
                 }
