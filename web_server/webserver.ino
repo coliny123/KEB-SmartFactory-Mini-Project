@@ -2,11 +2,13 @@
 #include <WiFiClient.h>
 #include <WebServer.h>
 #include "oled_u8g2.h" // oled display
+#include <ArduinoJson.h>
+
 
 
 //------------------------ global variables ------------------------------------------------------------------
-const char* ssid = "KT_GiGA_F2EA";                      // 와이파이 아이디
-const char* password = "ffk8ebb167";              // 와이파이 비밀번호
+const char* ssid = "KT_GiGA_F2EA"; // "Dohwan";// "SmartFactory";                      // 와이파이 아이디
+const char* password = "ffk8ebb167"; // "dh990921";// "inha4885";             // 와이파이 비밀번호
 
 WebServer server(80);
 OLED_U8G2 oled; // create oled object
@@ -78,25 +80,30 @@ void setup() {
 
 //---------------------------- roop --------------------------------------------------------------------------
 void loop() {
-  server.handleClient();
+  server.handleClient();	
   oled.setLine(1, "Web Server");
   oled.display();
-  server.send(200, "text/plain", printData());
+  server.on("/data", handleDataRequest);
   delay(5000); // 5/1000 sec
 }
 
 
 //--------------------------- functions ----------------------------------------------------------------------
-void handleRootEvent(){
+void handleRootEvent() {	// change text/plain Form to json Form 
   String clientIP = server.client().remoteIP().toString();  // client's ip addr
   int octet1, octet2, octet3, octet4;
   sscanf(clientIP.c_str(), "%d.%d.%d.%d", &octet1, &octet2, &octet3, &octet4);
   String maskedIP = String(octet1) + ".XXX.XXX." + String(octet4); // 2nd, 3rd masking
-  String message = "Welcome SmartFactory WebServer!\n";
-  message += "Your IP address: " + maskedIP; 
-  server.send(200, "text/plain", message);
 
-  Serial.println(message); // monitoring
+  StaticJsonDocument<128> jsonDocument;
+  jsonDocument["message"] = "Welcome SmartFactory WebServer!";
+  jsonDocument["ip_address"] = maskedIP;
+
+  String jsonResponse;
+  serializeJson(jsonDocument, jsonResponse);
+  server.send(200, "application/json", jsonResponse);
+
+  Serial.println(jsonResponse); // monitoring
 }
 
 double calculateTemperature(){
@@ -104,21 +111,22 @@ double calculateTemperature(){
   R2 = R1 * (4095.0 / (float)Vo - 1.0);
   logR2 = log(R2);
   T = (1.0 / (c1 + c2*logR2 + c3*logR2*logR2*logR2));
-  Tc = T - 273.15;  // celsius
+  Tc = round((T - 273.15) * 10) / 10.0;  // celsius
+  
   return Tc;
 }
 
-String printData(){  // 
-  double celsius = calculateTemperature();
-  int brightness = catchingPhotoresistor();
-  // int count = counting();
-  String message = "";
-  message = message + "Temperature: " + String(celsius) + " C\n"
-      + "Brightness: " + String(brightness) + " LUX\n";
-      // + "Count: " + String(count);
-  Serial.println(message);
-  
-  return message;
+void handleDataRequest() {	// change printData() function to json Form
+  StaticJsonDocument<200> jsonDocument;
+
+  jsonDocument["temperature"] = calculateTemperature();
+  jsonDocument["brightness"] = catchingPhotoresistor();
+
+  String jsonResponse;
+  serializeJson(jsonDocument, jsonResponse);
+
+  server.send(200, "application/json", jsonResponse);
+  Serial.println(jsonResponse);
 }
 
 int catchingPhotoresistor(){
