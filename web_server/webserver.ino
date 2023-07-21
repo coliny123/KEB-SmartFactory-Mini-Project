@@ -2,8 +2,7 @@
 #include <WiFiClient.h>
 #include <WebServer.h>
 #include "oled_u8g2.h" // oled display
-#include <ArduinoJson.h>
-
+#include <ArduinoJson.h>  // json Form
 
 
 //------------------------ global variables ------------------------------------------------------------------
@@ -54,11 +53,12 @@ void setup() {
   WiFi.mode(WIFI_STA);        // Set to Connection Mode
   WiFi.begin(ssid, password);      // Attempt to connect to WiFi
   Serial.println("");
+
   while (WiFi.status() != WL_CONNECTED) {       // Keep waiting until the connection
-    delay(500);
-    Serial.print(".");
-  }  
-  Serial.println("");
+  delay(500);
+  Serial.print(".");
+  }
+
   Serial.print("Connected to ");
   Serial.println(ssid);
   Serial.print("IP address: ");
@@ -80,16 +80,17 @@ void setup() {
 
 //---------------------------- roop --------------------------------------------------------------------------
 void loop() {
-  server.handleClient();	
+  server.handleClient();
   oled.setLine(1, "Web Server");
   oled.display();
   server.on("/data", handleDataRequest);
-  delay(5000); // 5/1000 sec
+  counting();
+  delay(500); // 500/1000 sec
 }
 
 
 //--------------------------- functions ----------------------------------------------------------------------
-void handleRootEvent() {	// change text/plain Form to json Form 
+void handleRootEvent() {
   String clientIP = server.client().remoteIP().toString();  // client's ip addr
   int octet1, octet2, octet3, octet4;
   sscanf(clientIP.c_str(), "%d.%d.%d.%d", &octet1, &octet2, &octet3, &octet4);
@@ -116,11 +117,12 @@ double calculateTemperature(){
   return Tc;
 }
 
-void handleDataRequest() {	// change printData() function to json Form
+void handleDataRequest() {
   StaticJsonDocument<200> jsonDocument;
 
   jsonDocument["temperature"] = calculateTemperature();
   jsonDocument["brightness"] = catchingPhotoresistor();
+  jsonDocument["count"] = counting();
 
   String jsonResponse;
   serializeJson(jsonDocument, jsonResponse);
@@ -134,40 +136,36 @@ int catchingPhotoresistor(){
   return lux;
 }
 
-// int counting(){
-//   long duration, distance;
-//   digitalWrite(trig_pin, LOW);                // 초음파 센서 거리 센싱 시작
-//   delayMicroseconds(2);
-//   digitalWrite(trig_pin, HIGH);
-//   delayMicroseconds(10);
-//   digitalWrite(trig_pin, LOW);  
+int counting(){
+  long duration, distance;
+  digitalWrite(trig_pin, LOW);                // 초음파 센서 거리 센싱 시작
+  delayMicroseconds(2);
+  digitalWrite(trig_pin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig_pin, LOW);  
 
-//   duration = pulseIn (echo_pin, HIGH);        // 반사되어 돌아온 초음파의 시간을 저장
-//   distance = ((34 * duration) / 1000) / 2;    // 측정된 값을 cm로 변환하는 공식
+  duration = pulseIn (echo_pin, HIGH);        // 반사되어 돌아온 초음파의 시간을 저장
+  distance = ((34 * duration) / 1000) / 2;    // 측정된 값을 cm로 변환하는 공식
 
-//   if(distance > 2 && distance < 5){            // 물체와의 거리가 2cm 초과 10cm 미만이면
-//     int now_time = millis();
-//     if(now_time - pre_time > 500){           // 중복 카운트를 방지하기 위해 0.5초 초과면 
-//       count += 1;                         // 한번 카운트
-//       pre_time = now_time;                // 이전 시각에 현재 시각 저장
-//     }
-//   }
-//   resetCount();
+  if(distance > 2 && distance < 5){            // 물체와의 거리가 2cm 초과 10cm 미만이면
+    int now_time = millis();
+    if(now_time - pre_time > 500){           // 중복 카운트를 방지하기 위해 0.5초 초과면 
+      count += 1;                         // 한번 카운트
+      pre_time = now_time;                // 이전 시각에 현재 시각 저장
+    }
+  }
 
-//   char text1[32] = "count : ";                // text1 count 값 표시
-//   char value1[32];
-//   String str1 = String(count, DEC);
-//   str1.toCharArray(value1, 6);
-//   strcat(text1, value1);
-//   oled.setLine(2, text1); 
+  if(digitalRead(reset_pin) == LOW){           // 리셋 버튼을 누르면
+    Serial.println("count reset");                
+    count = 0;                              // 카운트 초기화
+  }
 
-//   return count;
-// }
+  char text1[32] = "count : ";                // text1 count 값 표시
+  char value1[32];
+  String str1 = String(count, DEC);
+  str1.toCharArray(value1, 6);
+  strcat(text1, value1);
+  oled.setLine(2, text1); 
 
-// void resetCount(){
-//       if(digitalRead(reset_pin) == LOW)           // 리셋 버튼을 누르면
-//     {
-//         Serial.println("count reset");                
-//         count = 0;                              // 카운트 초기화
-//     }
-// }
+  return count;
+}
