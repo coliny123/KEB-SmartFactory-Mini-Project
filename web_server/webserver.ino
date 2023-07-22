@@ -66,6 +66,8 @@ void setup() {
   pinMode(echo_pin, INPUT);          
 
   server.on("/", handleRootEvent);
+  server.on("/data", handleDataRequest);
+
   server.begin();  
   Serial.println("Web server started!");
 }
@@ -76,9 +78,7 @@ void loop() {
   server.handleClient();
   oled.setLine(1, "Web Server");
   oled.display();
-  server.on("/data", handleDataRequest);
   counting();
-  displayCount();
   delay(500); // 500/1000 sec
 }
 
@@ -130,7 +130,7 @@ void handleDataRequest() {
   jsonDocument["timestamp"] = timeBuffer;
   jsonDocument["temperature"] = calculateTemperature();
   jsonDocument["brightness"] = catchingPhotoresistor();
-  jsonDocument["count"] = counting();
+  jsonDocument["count"] = count;
 
   String jsonResponse;
   serializeJson(jsonDocument, jsonResponse);
@@ -145,7 +145,7 @@ int catchingPhotoresistor(){
   return lux;
 }
 
-int counting(){
+void counting(){
   long duration, distance;
   digitalWrite(trig_pin, LOW);                // 초음파 센서 거리 센싱 시작
   delayMicroseconds(2);
@@ -167,16 +167,5 @@ int counting(){
   if(digitalRead(reset_pin) == LOW){           // 리셋 버튼을 누르면
     Serial.println("count reset");                
     count = 0;                              // 카운트 초기화
-  }
-
-  return count;
-}
-
-void displayCount(){
-  char text1[32] = "count : ";                // text1 count 값 표시
-  char value1[32];
-  String str1 = String(count, DEC);
-  str1.toCharArray(value1, 6);
-  strcat(text1, value1);
-  oled.setLine(2, text1); 
+  } 
 }
