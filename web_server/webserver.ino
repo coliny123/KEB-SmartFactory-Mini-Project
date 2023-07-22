@@ -7,8 +7,8 @@
 
 
 //------------------------ global variables ------------------------------------------------------------------
-const char* ssid = "SmartFactory"; //  "Dohwan"; // "KT_GiGA_F2EA"; // "SmartFactory"; //                     // 와이파이 아이디
-const char* password =  "inha4885"; // "dh990921"; // "ffk8ebb167"; //  "inha4885"; //            // 와이파이 비밀번호
+const char* ssid = "KT_GiGA_F2EA"; // "SmartFactory"; //  "Dohwan"; //                 // 와이파이 아이디
+const char* password =  "ffk8ebb167"; // "inha4885"; // "dh990921"; //      // 와이파이 비밀번호
 
 WebServer server(80);
 OLED_U8G2 oled; // create oled object
@@ -76,9 +76,8 @@ void setup() {
 //---------------------------- roop --------------------------------------------------------------------------
 void loop() {
   server.handleClient();
-  oled.setLine(1, "Web Server");
-  oled.display();
   counting();
+  oled_display();
   delay(500); // 500/1000 sec
 }
 
@@ -168,4 +167,15 @@ void counting(){
     Serial.println("count reset");                
     count = 0;                              // 카운트 초기화
   } 
+}
+
+void oled_display(){
+  char text1[32] = "count : ";                // text1 count 값 표시
+  char value1[32];
+  String str1 = String(count, DEC);
+  str1.toCharArray(value1, 6);
+  strcat(text1, value1);
+  oled.setLine(1, "Web Server");
+  oled.setLine(2, text1);
+  oled.display();
 }
