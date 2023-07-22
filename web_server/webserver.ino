@@ -3,11 +3,12 @@
 #include <WebServer.h>
 #include "oled_u8g2.h" // oled display
 #include <ArduinoJson.h>  // json Form
+#include <time.h> // 응답 보내는 시간 위함
 
 
 //------------------------ global variables ------------------------------------------------------------------
-const char* ssid = "KT_GiGA_F2EA"; // "Dohwan";// "SmartFactory";                      // 와이파이 아이디
-const char* password = "ffk8ebb167"; // "dh990921";// "inha4885";             // 와이파이 비밀번호
+const char* ssid = "SmartFactory"; //  "Dohwan"; // "KT_GiGA_F2EA"; // "SmartFactory"; //                     // 와이파이 아이디
+const char* password =  "inha4885"; // "dh990921"; // "ffk8ebb167"; //  "inha4885"; //            // 와이파이 비밀번호
 
 WebServer server(80);
 OLED_U8G2 oled; // create oled object
@@ -28,20 +29,9 @@ int yellow_led = D5;
 int reset_pin = D6;
 
 
-
-// calcul_temperature_formula
-int Vo;
-double R1 = 10000;
-double logR2, R2, T, Tc;
-double c1 = 1.009249522e-03, c2 = 2.378405444e-04, c3 = 2.019202697e-07;
-double Tf = 0;
-
-// photoresistor_var
-int lux;
-
-// counting_var
-int count = 0;                                  // 카운터용 변수
-int pre_time = 0;                               // 이전에 물건이 지나간 시간
+// counting_var : to store the previous value
+int count = 0;        // 카운터용 변수
+int pre_time = 0;     // 이전에 물건이 지나간 시간
 
 
 //--------------------------- setup --------------------------------------------------------------------------
@@ -55,14 +45,17 @@ void setup() {
   Serial.println("");
 
   while (WiFi.status() != WL_CONNECTED) {       // Keep waiting until the connection
-  delay(500);
-  Serial.print(".");
+    delay(500);
+    Serial.print(".");
   }
 
   Serial.print("Connected to ");
   Serial.println(ssid);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+
+  // NTP 서버에서 시간 동기화
+  configTime(9 * 3600, 0, "pool.ntp.org"); // NTP 서버에서 시간 동기화
 
   // pinMode setting
   pinMode(red_led, OUTPUT);                  
@@ -85,6 +78,7 @@ void loop() {
   oled.display();
   server.on("/data", handleDataRequest);
   counting();
+  displayCount();
   delay(500); // 500/1000 sec
 }
 
@@ -108,7 +102,12 @@ void handleRootEvent() {
 }
 
 double calculateTemperature(){
-  Vo = analogRead(temp_sensor); // read from temperature sensing value
+  // calcul_temperature_formula
+  double R1 = 10000;
+  double logR2, R2, T, Tc;
+  double c1 = 1.009249522e-03, c2 = 2.378405444e-04, c3 = 2.019202697e-07;
+  int Vo = analogRead(temp_sensor); // read from temperature sensing value
+
   R2 = R1 * (4095.0 / (float)Vo - 1.0);
   logR2 = log(R2);
   T = (1.0 / (c1 + c2*logR2 + c3*logR2*logR2*logR2));
@@ -119,7 +118,16 @@ double calculateTemperature(){
 
 void handleDataRequest() {
   StaticJsonDocument<200> jsonDocument;
+  time_t now;
+  struct tm timeinfo;
 
+  time(&now);                   // 현재 시간을 가져오기
+  localtime_r(&now, &timeinfo); // 현재 시간을 구조화된 형태로 변환
+
+  // JSON 응답에 시간 추가
+  char timeBuffer[32];
+  strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
+  jsonDocument["timestamp"] = timeBuffer;
   jsonDocument["temperature"] = calculateTemperature();
   jsonDocument["brightness"] = catchingPhotoresistor();
   jsonDocument["count"] = counting();
@@ -132,7 +140,8 @@ void handleDataRequest() {
 }
 
 int catchingPhotoresistor(){
-  lux = analogRead(photoresistor_sensor);
+  // photoresistor_var
+  int lux = analogRead(photoresistor_sensor);
   return lux;
 }
 
@@ -160,12 +169,14 @@ int counting(){
     count = 0;                              // 카운트 초기화
   }
 
+  return count;
+}
+
+void displayCount(){
   char text1[32] = "count : ";                // text1 count 값 표시
   char value1[32];
   String str1 = String(count, DEC);
   str1.toCharArray(value1, 6);
   strcat(text1, value1);
   oled.setLine(2, text1); 
-
-  return count;
 }
