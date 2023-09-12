@@ -35,6 +35,8 @@ public class SmartFactoryClient {
                     counting = Integer.parseInt(countingLine.split(": ")[1]);
 
                     CurrentConditionsDisplay conditionsDisplay = new CurrentConditionsDisplay(sensorData);
+                    StatisticsDisplay statisticsDisplay = new StatisticsDisplay(sensorData);
+                    GraphDisplay graphDisplay = new GraphDisplay(sensorData);
 
                     sensorData.setMeasurements(temperature, brightness, counting);
 
