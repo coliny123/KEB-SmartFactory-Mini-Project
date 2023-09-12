@@ -2,7 +2,7 @@
 ---
 
 ## 프로젝트 개요
-- 본 프로젝트는 공장의 모니터링 시스템을 개발하는 것을 목표로 한다. 아두이노를 활용하여 센서 데이터를 수집하고, window 애플리케이션을 사용하여 실시간 모니터링 및 날씨 데이터 웹 크롤링 기술을 구현한다.
+ 본 프로젝트는 공장의 모니터링 시스템을 개발하는 것을 목표로 한다. 아두이노를 활용하여 센서 데이터를 수집하고, window 애플리케이션을 사용하여 실시간 모니터링 및 날씨 데이터 웹 크롤링 기술을 구현한다.
 ---
 
 ## 개발 기간
@@ -23,6 +23,17 @@
 - ![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=java&logoColor=white)
   
 - ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+
+### Framwork
+
+- ![Java AWT](https://img.shields.io/badge/Java-AWT-ED8B00?logo=java&logoColor=white)
+
+- ![Java Swing](https://img.shields.io/badge/Java-Swing-ED8B00?logo=java&logoColor=white)
+
+- ![Python tkinter](https://img.shields.io/badge/Python-tkinter-3776AB?logo=python&logoColor=white)
+
+- ![Python matplotlib](https://img.shields.io/badge/Python-matplotlib-3776AB?logo=python&logoColor=white)
+
 
 ## 기능 소개
 
