@@ -2,7 +2,7 @@ package Observer;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;  // Java 11
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 public class SmartFactoryClient {
@@ -35,8 +35,13 @@ public class SmartFactoryClient {
                     counting = Integer.parseInt(countingLine.split(": ")[1]);
 
                     CurrentConditionsDisplay conditionsDisplay = new CurrentConditionsDisplay(sensorData);
+                    conditionsDisplay.setVisible(true);
+
                     StatisticsDisplay statisticsDisplay = new StatisticsDisplay(sensorData);
+                    statisticsDisplay.setVisible(true);
+
                     GraphDisplay graphDisplay = new GraphDisplay(sensorData);
+                    graphDisplay.setVisible(true);
 
                     sensorData.setMeasurements(temperature, brightness, counting);
 
